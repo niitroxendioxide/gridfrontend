@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        const ws = new WebSocket("ws://localhost:8080");
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            const runbtn = document.getElementById('run');
+
+            runbtn.addEventListener('click', () => {
+                ws.send("code!")
+            });
+        })
+    </script>
+</head>
+<body>
+    <button id="run">Run</button>
+    <div class="editor-container">
+        <div id="editor"></div>
+    </div>
+    <canvas id="grid" width="320" height="320"></canvas>
+</body>
+</html>
