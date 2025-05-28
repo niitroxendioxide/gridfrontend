@@ -1,26 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script>
-        const ws = new WebSocket("ws://localhost:8080");
-        
-        document.addEventListener("DOMContentLoaded", function() {
-            const runbtn = document.getElementById('run');
-
-            runbtn.addEventListener('click', () => {
-                ws.send("code!")
-            });
-        })
-    </script>
+    <title>Pixel Grid</title>
+    <style>
+        #gridCanvas {
+            border: 1px solid #000;
+            image-rendering: pixelated;
+        }
+    </style>
 </head>
 <body>
-    <button id="run">Run</button>
-    <div class="editor-container">
-        <div id="editor"></div>
-    </div>
-    <canvas id="grid" width="320" height="320"></canvas>
+    <canvas id="gridCanvas"></canvas>
+
+    <script>
+        const GRID_SIZE = 45;  // Should match your DIMENSION value
+        const PIXEL_SIZE = 8;  // Size of each pixel in pixels
+        const canvas = document.getElementById('gridCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size based on grid dimensions
+        canvas.width = GRID_SIZE * PIXEL_SIZE;
+        canvas.height = GRID_SIZE * PIXEL_SIZE;
+
+        // WebSocket connection
+        const ws = new WebSocket('ws://localhost:8080/ws');  // Update with your server URL
+
+        ws.onmessage = function(event) {
+            // Parse the received data as Uint8Array
+            const data = new Uint8Array(event.data);
+            drawGrid(data);
+        };
+
+        function drawGrid(pixelData) {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw each pixel
+            for(let y = 0; y < GRID_SIZE; y++) {
+                for(let x = 0; x < GRID_SIZE; x++) {
+                    const index = (y * GRID_SIZE + x) * 4;
+                    const r = pixelData[index];
+                    const g = pixelData[index + 1];
+                    const b = pixelData[index + 2];
+                    const a = pixelData[index + 3] / 255;  // Convert to 0-1 range
+
+                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
+                    ctx.fillRect(
+                        x * PIXEL_SIZE,
+                        y * PIXEL_SIZE,
+                        PIXEL_SIZE,
+                        PIXEL_SIZE
+                    );
+                }
+            }
+        }
+
+        // Initial connection handling
+        ws.onopen = function() {
+            console.log('Connected to server');
+        };
+
+        ws.onerror = function(error) {
+            console.error('WebSocket Error:', error);
+        };
+
+        //
+        function generateTestData() {
+            const data = new Uint8Array(GRID_SIZE * GRID_SIZE * 4);
+            for(let i = 0; i < data.length; i += 4) {
+                data[i] = Math.random() * 255;     // R
+                data[i+1] = Math.random() * 255;   // G
+                data[i+2] = Math.random() * 255;   // B
+                data[i+3] = 255;                   // A
+            }
+            return data;
+        }
+
+        // Simulate receiving data
+        setTimeout(() => drawGrid(generateTestData()), 1000);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('run').addEventListener("click", () => {
+                const input_box = document.getElementById('source');
+                const source = input_box.value
+
+                ws.send(source);
+            })
+        })
+    </script>
 </body>
+    <button id="run">Run code</button>
+    <input id="source">
 </html>
