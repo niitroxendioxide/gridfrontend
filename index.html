@@ -7,13 +7,19 @@
             border: 1px solid #000;
             image-rendering: pixelated;
         }
+
+        #source {
+            width: 500px;
+            height: 500px;
+            text-align: top;
+        }
     </style>
 </head>
 <body>
     <canvas id="gridCanvas"></canvas>
 
     <script>
-        const GRID_SIZE = 45;  // Should match your DIMENSION value
+        const GRID_SIZE = 32;  // Should match your DIMENSION value
         const PIXEL_SIZE = 8;  // Size of each pixel in pixels
         const canvas = document.getElementById('gridCanvas');
         const ctx = canvas.getContext('2d');
@@ -27,22 +33,28 @@
 
         ws.onmessage = function(event) {
             // Parse the received data as Uint8Array
-            const data = new Uint8Array(event.data);
-            drawGrid(data);
+            //console.log(data);
+            const new_data = JSON.parse(event.data)
+
+            drawGrid(new_data);
         };
 
-        function drawGrid(pixelData) {
+        function drawGrid(GridData) {
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Draw each pixel
             for(let y = 0; y < GRID_SIZE; y++) {
                 for(let x = 0; x < GRID_SIZE; x++) {
-                    const index = (y * GRID_SIZE + x) * 4;
-                    const r = pixelData[index];
-                    const g = pixelData[index + 1];
-                    const b = pixelData[index + 2];
-                    const a = pixelData[index + 3] / 255;  // Convert to 0-1 range
+                    const index = (y * GRID_SIZE) + x;
+                    const pixel = GridData[index];
+                    
+                    const r = pixel[0];
+                    const g = pixel[1];
+                    const b = pixel[2];
+                    const a = pixel[3] / 255;  // Convert to 0-1 range
+
+                    console.log(r, g, b, a)
 
                     ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
                     ctx.fillRect(
@@ -63,21 +75,6 @@
         ws.onerror = function(error) {
             console.error('WebSocket Error:', error);
         };
-
-        //
-        function generateTestData() {
-            const data = new Uint8Array(GRID_SIZE * GRID_SIZE * 4);
-            for(let i = 0; i < data.length; i += 4) {
-                data[i] = Math.random() * 255;     // R
-                data[i+1] = Math.random() * 255;   // G
-                data[i+2] = Math.random() * 255;   // B
-                data[i+3] = 255;                   // A
-            }
-            return data;
-        }
-
-        // Simulate receiving data
-        setTimeout(() => drawGrid(generateTestData()), 1000);
 
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('run').addEventListener("click", () => {
