@@ -19,31 +19,25 @@
     <canvas id="gridCanvas"></canvas>
 
     <script>
-        const GRID_SIZE = 32;  // Should match your DIMENSION value
-        const PIXEL_SIZE = 8;  // Size of each pixel in pixels
+        const GRID_SIZE = 32;  
+        const PIXEL_SIZE = 8; // pixels
         const canvas = document.getElementById('gridCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Set canvas size based on grid dimensions
         canvas.width = GRID_SIZE * PIXEL_SIZE;
         canvas.height = GRID_SIZE * PIXEL_SIZE;
 
-        // WebSocket connection
         const ws = new WebSocket('ws://localhost:8080/ws');  // Update with your server URL
 
         ws.onmessage = function(event) {
-            // Parse the received data as Uint8Array
-            //console.log(data);
             const new_data = JSON.parse(event.data)
 
             drawGrid(new_data);
         };
 
         function drawGrid(GridData) {
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw each pixel
             for(let y = 0; y < GRID_SIZE; y++) {
                 for(let x = 0; x < GRID_SIZE; x++) {
                     const index = (y * GRID_SIZE) + x;
@@ -52,7 +46,7 @@
                     const r = pixel[0];
                     const g = pixel[1];
                     const b = pixel[2];
-                    const a = pixel[3] / 255;  // Convert to 0-1 range
+                    const a = pixel[3] / 255;  // Alpha, 0 = invisible, 1 = visible
 
                     console.log(r, g, b, a)
 
